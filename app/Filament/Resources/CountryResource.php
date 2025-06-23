@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CountryResource\Pages;
 use App\Filament\Resources\CountryResource\RelationManagers;
 use App\Models\Country;
+use Carbon\Carbon;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
@@ -16,6 +18,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Infolists\Components\Actions\Action;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\Indicator;
+use Filament\Tables\Filters\SelectFilter;
 
 class CountryResource extends Resource
 {
@@ -80,8 +86,59 @@ class CountryResource extends Resource
             
             ])
             ->filters([
-                //
-            ])
+                //add select filter for country states
+                SelectFilter::make('state')
+                ->relationship('states','name')
+                ->searchable()
+                ->preload()
+                ->label('choose state')
+                ->indicator('state'),//this is the label of filterthat will appear above table after apply any filter
+
+                //add custom filter for created dates=
+                Filter::make('created_at')
+                    ->form([
+                        DatePicker::make('created_from'),
+                        DatePicker::make('created_until'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+                    //to add indicator for this custom filte use indicateUsing
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if ($data['created_from'] ?? null) {
+                            $indicators[] = Indicator::make('Created from ' . Carbon::parse($data['created_from'])->toFormattedDateString())
+                                ->removeField('created_from');
+                        }
+
+                        if ($data['created_until'] ?? null) {
+                            $indicators[] = Indicator::make('Created until ' . Carbon::parse($data['created_until'])->toFormattedDateString())
+                                ->removeField('created_until');
+                        }
+
+                        return $indicators;
+                    })
+                    ->columnSpan(2)->columns(2)
+                    /*
+                    case AboveContent;			    //هيظهر الفلتر فوق الجدول ع طول
+                    case AboveContentCollapsible;	//هيظهر الفلتر فوق الجدول بس هيكون مقفول ... افتحه واقفله ب ايقون الفلتر
+                    case BelowContent;			    //هيظهر الفلتر تحت الجدول
+                    case Dropdown;			        // دى القيمه الافتراضيه ... هيزهر ايقون للفلتر جنب البحث
+                    case Modal;				        // هنا هيظهره فى بوب اب موديول
+                    case Hidden;			        // هيخفى الفلتر
+                    */
+                ],layout:FiltersLayout::Modal  //show popup modal
+                ) ->filtersFormColumns(3)
+
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
