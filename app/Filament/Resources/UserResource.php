@@ -19,7 +19,21 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon    = 'heroicon-o-users';
     protected static ?string $navigationGroup   = 'User Managment';
-
+    //=============================================================================
+    public static function getNavigationBadge(): ?string
+    {
+        // This method is used to display a badge on the navigation item.
+        return Static::getModel()::count();
+    }
+    //=============================================================================
+    public static function getNavigationBadgeColor(): ?string
+    {
+        // This method is used to specify the color of the badge.
+        return 'primary';
+    }
+    //=============================================================================
+   
+    
     public static function form(Form $form): Form
     {
         return $form

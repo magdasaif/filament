@@ -30,6 +30,22 @@ class DepartmentResource extends Resource
    
     //to sort menu items
     protected static ?int $navigationSort       = 4;
+    //=============================================================================
+    protected static ?string $recordTitleAttribute ='name';
+    //=============================================================================
+    public static function getNavigationBadge(): ?string
+    {
+        // This method is used to display a badge on the navigation item.
+        return Static::getModel()::count();
+    }
+    //=============================================================================
+    public static function getNavigationBadgeColor(): ?string
+    {
+        // This method is used to specify the color of the badge.
+        return 'primary';
+    }
+    //=============================================================================
+   
     public static function form(Form $form): Form
     {
         return $form

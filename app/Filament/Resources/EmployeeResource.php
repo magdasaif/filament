@@ -18,6 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -28,6 +29,53 @@ class EmployeeResource extends Resource
     protected static ?string $navigationIcon    = 'heroicon-o-user-group';
     protected static ?string $navigationGroup   = 'Employee Managment';
 
+    //=============================================================================
+    protected static ?string $recordTitleAttribute ='first_name';
+    //=============================================================================
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        // This method is used to display the title of the record in the global search results.
+        // It returns a string that represents the record.
+        return $record->first_name . ' ' . $record->middle_name . ' ' . $record->last_name;
+    }
+    //=============================================================================
+    public static function getGloballySearchableAttributes(): array
+    {
+        // This method is used to specify which attributes of the model should be searchable globally.
+        // It returns an array of attribute names.
+        return ['first_name', 'middle_name', 'last_name', 'country.name'];
+    }
+    //=============================================================================
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        // This method is used to display additional details of the record in the global search results.
+        // It returns an array of key-value pairs where the key is the label and the value is the attribute.
+        return [
+            'Country' => $record->country->name ?? 'N/A',
+        ];
+    }
+    //=============================================================================
+    //this function used for eager relation load instead of lazy loading
+    //to avoid N+1 query problem in global search
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        // This method is used to specify the query that should be used for global search.
+        // It returns a Builder instance that can be used to build the query.
+        return parent::getGlobalSearchEloquentQuery()->with(['country']);
+    }
+    //=============================================================================
+    public static function getNavigationBadge(): ?string
+    {
+        // This method is used to display a badge on the navigation item.
+        return Static::getModel()::count();
+    }
+    //=============================================================================
+    public static function getNavigationBadgeColor(): ?string
+    {
+        // This method is used to specify the color of the badge.
+        return 'primary';
+    }
+    //=============================================================================
     public static function form(Form $form): Form
     {
         return $form
@@ -123,7 +171,7 @@ class EmployeeResource extends Resource
                 ])->columns(2),
             ]);
     }
-
+    //=============================================================================
     public static function table(Table $table): Table
     {
         return $table
@@ -185,14 +233,14 @@ class EmployeeResource extends Resource
                 ]),
             ]);
     }
-
+    //=============================================================================
     public static function getRelations(): array
     {
         return [
             //
         ];
     }
-
+    //=============================================================================     
     public static function getPages(): array
     {
         return [
@@ -202,4 +250,5 @@ class EmployeeResource extends Resource
             'edit' => Pages\EditEmployee::route('/{record}/edit'),
         ];
     }
+    //=============================================================================
 }
