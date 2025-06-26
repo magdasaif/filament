@@ -1,0 +1,26 @@
+name: Laravel CI/CD
+on:
+  push:
+    branches:
+      - dev  # Trigger the workflow on pushes to the main branch
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up PHP
+      uses: wpweb/setup-php@v2
+      with:
+        php-version: '8.2'  # Specify your PHP version
+        extensions: mbstring, xml, ctype, json, bcmath, curl, fileinfo
+    - name: Install Composer dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader
+    - name: Run Tests
+      run: php artisan test
+    - name: Deploy to Server
+      run: |
+        ssh user@your-server "cd /path/to/your/app && git pull origin main && composer install --no-interaction --prefer-dist --optimize-autoloader"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Add your SSH key to secrets
