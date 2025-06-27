@@ -10,6 +10,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -55,7 +56,7 @@ class DepartmentResource extends Resource
                     ->maxLength(255),
             ]);
     }
-
+    //=============================================================================
     public static function table(Table $table): Table
     {
         return $table
@@ -77,6 +78,13 @@ class DepartmentResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                ->successNotification(
+                   Notification::make()
+                        ->title(__('Department deleted successfully.'))
+                        ->success()
+                        ->body(__('The department has been deleted successfully.'))
+                ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -84,7 +92,8 @@ class DepartmentResource extends Resource
                 ]),
             ]);
     }
-
+    //=============================================================================
+    //for view popup modal
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -97,13 +106,14 @@ class DepartmentResource extends Resource
             ])
             ->columns(2);
     }
+    //=============================================================================
     public static function getRelations(): array
     {
         return [
             EmployeesRelationManager::class
         ];
     }
-
+    //=============================================================================
     public static function getPages(): array
     {
         return [
@@ -113,4 +123,5 @@ class DepartmentResource extends Resource
             'edit' => Pages\EditDepartment::route('/{record}/edit'),
         ];
     }
+    //=============================================================================
 }
